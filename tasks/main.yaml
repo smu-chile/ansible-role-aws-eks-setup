@@ -1,2 +1,72 @@
-- name: Ping
-  ping:
+- name: "Verify that required string variables are defined"
+  assert:
+    that: 
+      - required_variable is defined
+      - required_variable | length > 0
+      - required_variable != None
+    fail_msg: "{{ required_variable }} needs to be set for the role to work"
+    success_msg: "Required variable {{ required_variable}} is defined"
+  loop_control:
+    loop_var: required_variable
+  with_items:
+    - "{{ CLUSTER_NAME }}"
+    - "{{ KUBECONFIG }}"
+    - "{{ AWS_ACCESS_KEY_ID }}"
+    - "{{ AWS_SECRET_ACCESS_KEY }}"
+    - "{{ REGION }}"
+    - "{{ CONFIG_MAP_AWS_AUTH }}"
+    - "{{ ACCOUNT_ID }}"
+  no_log: True
+  
+## Kubeconfig
+
+- name: Create .kube directory
+  file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    mode: 0755
+  
+- name: Copy Kubeconfig to bastion
+  copy:
+    content: "{{ KUBECONFIG }}"
+    dest: ~/.kube/config
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: 0644
+
+## AWS-AUTH
+
+- name: AWS-Configure
+  shell: |
+    aws configure set aws_access_key_id {{ AWS_ACCESS_KEY_ID }}
+    aws configure set aws_secret_access_key {{ AWS_SECRET_ACCESS_KEY }}
+    aws configure set default.region {{ REGION }}
+
+
+- name: Create aws-auth configmap
+  shell: echo "{{ CONFIG_MAP_AWS_AUTH }}" | kubectl apply -f -
+
+## IAM OIDC provider
+
+- name: Create IAM OIDC provider
+  shell: eksctl utils associate-iam-oidc-provider --approve --cluster="{{ CLUSTER_NAME }}"
+  
+## IAM IAMServiceAccount
+
+- name: Create Cluster IAMServiceAccount
+  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=external-dns --namespace=default --override-existing-serviceaccounts --approve --attach-policy-arn="{{ ROUTE_53_ARN }}"
+
+- name: Create Policy
+  shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json | jq ".Policy.Arn" | tr -d '"'
+
+- name: Create IAM Service Account
+  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn="arn:aws:iam::{{ ACCOUNT_ID }}:policy/AWSLoadBalancerControllerIAMPolicy" --override-existing-serviceaccounts --approve
+
+
+## EKS chart load balancer
+- name: Add HELM repo
+  shell: helm repo add eks https://aws.github.io/eks-charts
+
+- name: Helm Upgrade
+  shell: helm upgrade -i aws-load-balancer-controller eks/aws-load-balancer-controller --set clusterName="{{ CLUSTER_NAME }}" --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller -n kube-system
+  
