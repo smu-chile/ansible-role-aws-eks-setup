@@ -1,31 +1,46 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Role to create a sealed secret deployment on a kubernetes cluster
 
-Requirements
-------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+```
+CLUSTER_NAME
+KUBECONFIG
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+REGION
+CONFIG_MAP_AWS_AUTH
+ACCOUNT_ID
+```
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```
+- hosts: "{{ lookup('env','BASTION_IP') }}"
+  become: no
+  remote_user: "ubuntu"
+
+# Uncomment "aws-eks-setup" role only if you are upgrading the cluster
+  roles:
+    - role: aws-eks-setup
+      BASTION_IP: "{{ lookup('env', 'BASTION_IP') }}"
+      AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+      AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+      REGION: "{{ lookup('env', 'REGION') }}"
+      CLUSTER_NAME: "{{ lookup('env', 'CLUSTER_NAME') }}"
+      ROUTE_53_ARN: "{{ lookup('env', 'ROUTE_53_ARN') }}"
+      KUBECONFIG: "{{ lookup('env', 'KUBECONFIG') }}"
+      CONFIG_MAP_AWS_AUTH: "{{ lookup('env', 'CONFIG_MAP_AWS_AUTH') }}"
+      ACCOUNT_ID: "{{ lookup('env', 'ACCOUNT_ID') }}"
+
+```
 
 License
 -------
@@ -35,4 +50,4 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+- [César vergara](mailto:cvergarae@smu.cl)
