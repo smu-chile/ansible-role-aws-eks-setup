@@ -50,23 +50,44 @@
 
 - name: Create IAM OIDC provider
   shell: eksctl utils associate-iam-oidc-provider --approve --cluster="{{ CLUSTER_NAME }}"
-  
+  register: result
+
+- debug:
+    var: result.stdout
 ## IAM IAMServiceAccount
 
 - name: Create Cluster IAMServiceAccount
   shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=external-dns --namespace=default --override-existing-serviceaccounts --approve --attach-policy-arn="{{ ROUTE_53_ARN }}"
+  register: result
+
+- debug:
+    var: result.stdout
 
 - name: Create Policy
   shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json | jq ".Policy.Arn" | tr -d '"'
+  register: result
+
+- debug:
+    var: result.stdout
 
 - name: Create IAM Service Account
   shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn="arn:aws:iam::{{ ACCOUNT_ID }}:policy/AWSLoadBalancerControllerIAMPolicy" --override-existing-serviceaccounts --approve
+  register: result
 
+- debug:
+    var: result.stdout
 
 ## EKS chart load balancer
 - name: Add HELM repo
   shell: helm repo add eks https://aws.github.io/eks-charts
+  register: result
+
+- debug:
+    var: result.stdout
 
 - name: Helm Upgrade
   shell: helm upgrade -i aws-load-balancer-controller eks/aws-load-balancer-controller --set clusterName="{{ CLUSTER_NAME }}" --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller -n kube-system
-  
+    register: result
+
+- debug:
+    var: result.stdout
