@@ -56,6 +56,9 @@
 - name: Curl iam.policy
   shell: curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
+- name: Delete Policy
+  shell: aws iam delete-policy --policy-name AWSLoadBalancerControllerIAMPolicy
+
 - name: Create Policy
   shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
 
