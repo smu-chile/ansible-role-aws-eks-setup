@@ -56,11 +56,8 @@
 - name: Curl iam.policy
   shell: curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.2.0/docs/install/iam_policy.json
 
-- name: Delete Policy
-  shell: aws iam delete-policy --policy-arn arn:aws:iam::193160220528:policy/AWSLoadBalancerControllerIAMPolicy
-
 - name: Create Policy
-  shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam-policy.json
+  shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy2 --policy-document file://iam-policy.json
 
 - name: Delete IAMServiceAccount
   shell: eksctl delete iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=aws-load-balancer-controller
@@ -69,7 +66,7 @@
   shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=external-dns --namespace=default --override-existing-serviceaccounts --approve --attach-policy-arn="{{ ROUTE_53_ARN }}"
   
 - name: Create IAM Service Account
-  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn="arn:aws:iam::{{ ACCOUNT_ID }}:policy/AWSLoadBalancerControllerIAMPolicy" --override-existing-serviceaccounts --approve
+  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn="arn:aws:iam::{{ ACCOUNT_ID }}:policy/AWSLoadBalancerControllerIAMPolicy2" --override-existing-serviceaccounts --approve
 
 ## EKS chart load balancer
 - name: Add HELM repo
