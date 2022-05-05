@@ -54,7 +54,7 @@
 ## IAM IAMServiceAccount
 
 - name: Create Cluster IAMServiceAccount
-  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=external-dns --namespace=default --override-existing-serviceaccounts --approve --attach-policy-arn="{{ ROUTE_53_ARN }}"
+  shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --name=external-dns --namespace=default --override-existing-serviceaccounts --approve --attach-policy-arn="{{ ROUTE_53_ARN }}" --ENABLE_PREFIX_DELEGATION=true
 
 - name: Create Policy
   shell: aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json | jq ".Policy.Arn" | tr -d '"'
