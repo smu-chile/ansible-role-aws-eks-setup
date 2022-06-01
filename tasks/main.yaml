@@ -62,9 +62,6 @@
 - name: Create IAM Service Account
   shell: eksctl create iamserviceaccount --cluster="{{ CLUSTER_NAME }}" --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn="arn:aws:iam::{{ ACCOUNT_ID }}:policy/AWSLoadBalancerControllerIAMPolicy" --override-existing-serviceaccounts --approve
 
-- name: SET ENABLE PREFIX DELEGATION
-  shell: kubectl set env daemonset aws-node -n kube-system ENABLE_PREFIX_DELEGATION=true
-
 
 ## EKS chart load balancer
 - name: Add HELM repo
