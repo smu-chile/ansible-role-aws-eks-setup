@@ -16,7 +16,7 @@
     - "{{ REGION }}"
     - "{{ CONFIG_MAP_AWS_AUTH }}"
     - "{{ ACCOUNT_ID }}"
-  no_log: True
+  no_log: false
   
 ## Kubeconfig
 
