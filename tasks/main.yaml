@@ -1,22 +1,37 @@
-- name: "Verify that required string variables are defined"
-  assert:
-    that: 
-      - required_variable is defined
-      - required_variable | length > 0
-      - required_variable != None
-    fail_msg: "{{ required_variable }} needs to be set for the role to work"
-    success_msg: "Required variable {{ required_variable}} is defined"
+- name: "Mostrar valores actuales de las variables requeridas (debug temporal)"
+  debug:
+    msg: "{{ required_variable }} = {{ hostvars[inventory_hostname][required_variable] | default('NO DEFINIDA') }}"
   loop_control:
     loop_var: required_variable
   with_items:
-    - "{{ CLUSTER_NAME }}"
-    - "{{ KUBECONFIG }}"
-    - "{{ AWS_ACCESS_KEY_ID }}"
-    - "{{ AWS_SECRET_ACCESS_KEY }}"
-    - "{{ REGION }}"
-    - "{{ CONFIG_MAP_AWS_AUTH }}"
-    - "{{ ACCOUNT_ID }}"
+    - "CLUSTER_NAME"
+    - "KUBECONFIG"
+    - "AWS_ACCESS_KEY_ID"
+    - "AWS_SECRET_ACCESS_KEY"
+    - "REGION"
+    - "CONFIG_MAP_AWS_AUTH"
+    - "ACCOUNT_ID"
+
+- name: "Verificar que las variables requeridas estén definidas y no vacías"
+  assert:
+    that: 
+      - hostvars[inventory_hostname][required_variable] is defined
+      - hostvars[inventory_hostname][required_variable] | length > 0
+      - hostvars[inventory_hostname][required_variable] != None
+    fail_msg: "{{ required_variable }} needs to be set for the role to work"
+    success_msg: "Required variable {{ required_variable }} is defined"
+  loop_control:
+    loop_var: required_variable
+  with_items:
+    - "CLUSTER_NAME"
+    - "KUBECONFIG"
+    - "AWS_ACCESS_KEY_ID"
+    - "AWS_SECRET_ACCESS_KEY"
+    - "REGION"
+    - "CONFIG_MAP_AWS_AUTH"
+    - "ACCOUNT_ID"
   no_log: false
+
   
 ## Kubeconfig
 
